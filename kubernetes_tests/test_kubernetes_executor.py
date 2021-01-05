@@ -93,6 +93,40 @@ class TestKubernetesExecutor(unittest.TestCase):
     def tearDown(self):
         self.session.close()
 
+    @staticmethod
+    def _show_webserver_log():
+        print(">" * 80, "webserver")
+        subprocess.call(
+            [
+                "kubectl",
+                "logs",
+                "-l",
+                "component=webserver",
+                "-c",
+                "webserver",
+                "--namespace",
+                "airflow",
+            ]
+        )
+        print(">" * 80)
+
+    @staticmethod
+    def _show_scheduler_log():
+        print(">" * 80, "scheduler")
+        subprocess.call(
+            [
+                "kubectl",
+                "logs",
+                "-l",
+                "component=webserver",
+                "-c",
+                "scheduler",
+                "--namespace",
+                "airflow",
+            ]
+        )
+        print(">" * 80)
+
     def monitor_task(self, host, execution_date, dag_id, task_id, expected_final_state, timeout):
         tries = 0
         state = ''
@@ -122,6 +156,9 @@ class TestKubernetesExecutor(unittest.TestCase):
                     break
                 self._describe_resources(namespace="airflow")
                 self._describe_resources(namespace="default")
+                self._show_scheduler_log()
+                self._show_webserver_log()
+
                 tries += 1
             except requests.exceptions.ConnectionError as e:
                 check_call(["echo", f"api call failed. trying again. error {e}"])
